@@ -1,5 +1,15 @@
+@font-face {
+  font-family: "BHN Editorial New";
+  src: url("BHN Editorial New Ultra Light.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 200;
+  font-display: swap;
+}
+
 :root {
   color-scheme: light;
+  --font-body: "Be Vietnam Pro", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-heading: "BHN Editorial New", Georgia, serif;
   --ink: #121414;
   --ink-soft: #27302d;
   --paper: #f3ead7;
@@ -25,7 +35,7 @@ html {
 
 body {
   margin: 0;
-  font-family: "Be Vietnam Pro", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: var(--font-body);
   background:
     linear-gradient(90deg, rgba(158, 48, 47, 0.05) 0 1px, transparent 1px 100%),
     linear-gradient(180deg, #101313 0, #16201d 42rem, var(--paper) 42rem);
@@ -109,7 +119,7 @@ button {
   border: 1px solid rgba(255, 255, 255, 0.45);
   border-radius: 50%;
   background: rgba(158, 48, 47, 0.72);
-  font-family: "Playfair Display", serif;
+  font-family: var(--font-heading);
   font-size: 1.4rem;
 }
 
@@ -220,7 +230,7 @@ button {
 .closing-copy h2,
 .poll-copy h2 {
   margin: 0;
-  font-family: "Playfair Display", Georgia, serif;
+  font-family: var(--font-heading);
   font-size: 4.2rem;
   line-height: 0.98;
   letter-spacing: 0;
@@ -321,7 +331,7 @@ button {
 .deity-copy h2,
 .split-copy h2 {
   margin: 0 0 0.4rem;
-  font-family: "Playfair Display", Georgia, serif;
+  font-family: var(--font-heading);
   color: var(--red);
   font-size: 3rem;
   line-height: 1.05;
@@ -344,7 +354,7 @@ button {
   float: left;
   margin: 0.1rem 0.55rem 0 0;
   color: var(--red);
-  font-family: "Playfair Display", Georgia, serif;
+  font-family: var(--font-heading);
   font-size: 5.2rem;
   line-height: 0.82;
 }
@@ -504,7 +514,7 @@ button {
   border-left: 6px solid var(--red);
   color: var(--red);
   background: rgba(255, 255, 255, 0.65);
-  font-family: "Playfair Display", Georgia, serif;
+  font-family: var(--font-heading);
   font-size: 1.55rem;
   line-height: 1.45;
 }
@@ -791,7 +801,7 @@ body.has-open-card {
 .person-card h3 {
   margin: 0 0 0.75rem;
   color: var(--red);
-  font-family: "Playfair Display", Georgia, serif;
+  font-family: var(--font-heading);
   font-size: 1.8rem;
 }
 
@@ -859,7 +869,7 @@ body.has-open-card {
   padding: 3.5rem 2rem;
   text-align: center;
   color: #fff8ea;
-  font-family: "Playfair Display", Georgia, serif;
+  font-family: var(--font-heading);
   font-size: 2.6rem;
   line-height: 1.25;
   background: linear-gradient(120deg, rgba(158, 48, 47, 0.75), rgba(36, 94, 85, 0.78));
@@ -2077,5 +2087,99 @@ body {
 
   .sound-toggle.is-on .sound-icon {
     animation: none;
+  }
+}
+
+/* Typography pass: local editorial headings, balanced display type and resilient body copy. */
+:where(h1, h2, h3, h4, h5, h6) {
+  font-family: var(--font-heading);
+  font-weight: 200;
+  letter-spacing: 0;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+  word-break: normal;
+  hyphens: auto;
+}
+
+:where(
+  .article p,
+  .article blockquote,
+  .site-footer p,
+  .site-footer li
+) {
+  font-family: var(--font-body);
+  letter-spacing: 0;
+  text-wrap: pretty;
+  overflow-wrap: anywhere;
+  word-break: normal;
+  hyphens: auto;
+  orphans: 3;
+  widows: 3;
+}
+
+.chapter-title {
+  text-align: left;
+}
+
+.chapter-title .title-art {
+  margin-inline: auto;
+}
+
+.chapter-title p {
+  width: min(var(--max-text), 100%);
+  margin: 2rem auto 0;
+  text-align: left;
+}
+
+.timeline-section .section-heading {
+  width: min(var(--max-text), calc(100% - 2rem));
+  margin-bottom: clamp(3rem, 6vw, 5rem);
+  text-align: left;
+}
+
+.timeline-section .section-heading h2 {
+  margin-bottom: clamp(1.75rem, 3vw, 2.5rem);
+}
+
+.timeline-section .section-heading p {
+  margin-inline: 0;
+  text-align: left;
+}
+
+.site-footer {
+  text-align: left;
+}
+
+.credits {
+  width: min(var(--max-text), 100%);
+  margin-inline: auto;
+}
+
+.credits-title {
+  margin-bottom: 0.55rem !important;
+  color: #fff;
+  font-weight: 700;
+}
+
+.credits ul {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.credits li + li {
+  margin-top: 0.35rem;
+}
+
+@media (max-width: 640px) {
+  .chapter-title p {
+    margin-top: 1.5rem;
+  }
+
+  .timeline-section .section-heading {
+    margin-bottom: 2.75rem;
+  }
+
+  .timeline-section .section-heading h2 {
+    margin-bottom: 1.5rem;
   }
 }

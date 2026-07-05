@@ -20,6 +20,37 @@
     ".closing-media",
   ].join(",");
 
+  function preventSingleWordLastLines() {
+    const textElements = document.querySelectorAll([
+      ".article h1",
+      ".article h2",
+      ".article h3",
+      ".article p:not(.section-label)",
+      ".article blockquote",
+      ".site-footer p",
+      ".site-footer li",
+    ].join(","));
+
+    textElements.forEach((element) => {
+      const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
+      let lastTextNode = null;
+      let currentNode = walker.nextNode();
+
+      while (currentNode) {
+        if (currentNode.nodeValue.trim()) {
+          lastTextNode = currentNode;
+        }
+        currentNode = walker.nextNode();
+      }
+
+      if (lastTextNode) {
+        lastTextNode.nodeValue = lastTextNode.nodeValue.replace(/\s+(\S+)\s*$/, "\u00a0$1");
+      }
+    });
+  }
+
+  preventSingleWordLastLines();
+
   revealItems.forEach((item, index) => {
     if (!item.dataset.reveal) {
       if (item.matches(mediaRevealSelector)) {
