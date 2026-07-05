@@ -63,17 +63,31 @@
     });
   });
 
-  document.querySelectorAll("[data-tilt-gallery] .asset-card").forEach((card) => {
-    card.addEventListener("pointermove", (event) => {
-      const rect = card.getBoundingClientRect();
-      const x = (event.clientX - rect.left) / rect.width - 0.5;
-      const y = (event.clientY - rect.top) / rect.height - 0.5;
-      card.style.transform = `rotateX(${y * -7}deg) rotateY(${x * 7}deg) translateY(-4px)`;
-    });
+  const flashcards = document.querySelectorAll(".flashcard");
 
-    card.addEventListener("pointerleave", () => {
-      card.style.transform = "";
+  function closeFlashcard(card) {
+    card.classList.remove("is-expanded");
+    card.setAttribute("aria-expanded", "false");
+    document.body.classList.remove("has-open-card");
+  }
+
+  flashcards.forEach((card) => {
+    card.setAttribute("aria-expanded", "false");
+    card.addEventListener("click", () => {
+      const isOpen = card.classList.contains("is-expanded");
+      flashcards.forEach(closeFlashcard);
+      if (!isOpen) {
+        card.classList.add("is-expanded");
+        card.setAttribute("aria-expanded", "true");
+        document.body.classList.add("has-open-card");
+      }
     });
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      flashcards.forEach(closeFlashcard);
+    }
   });
 
   if (poll) {
