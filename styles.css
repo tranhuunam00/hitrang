@@ -1877,6 +1877,82 @@ body {
   }
 }
 
+.sound-toggle {
+  position: fixed;
+  z-index: 120;
+  right: max(1rem, env(safe-area-inset-right));
+  bottom: max(1rem, env(safe-area-inset-bottom));
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 44px;
+  padding: 0.62rem 0.82rem;
+  border: 1px solid rgba(255, 244, 210, 0.3);
+  border-radius: 999px;
+  color: #fff8e7;
+  background: rgba(18, 20, 20, 0.68);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.26);
+  backdrop-filter: blur(14px);
+  cursor: pointer;
+  transition:
+    transform 0.22s ease,
+    border-color 0.22s ease,
+    background 0.22s ease,
+    box-shadow 0.22s ease;
+}
+
+.sound-toggle:hover,
+.sound-toggle:focus-visible {
+  transform: translateY(-2px);
+  border-color: rgba(255, 244, 210, 0.62);
+  background: rgba(18, 20, 20, 0.86);
+  box-shadow: 0 22px 56px rgba(0, 0, 0, 0.32);
+  outline: none;
+}
+
+.sound-icon {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--ink);
+  background: rgba(255, 244, 210, 0.86);
+  font-weight: 800;
+  line-height: 1;
+  transition: background 0.22s ease, color 0.22s ease;
+}
+
+.sound-text {
+  font-size: 0.78rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.sound-toggle.is-on .sound-icon {
+  color: #1a1611;
+  background: var(--gold);
+  animation: soundPulse 1.6s ease-in-out infinite;
+}
+
+.sound-toggle.is-ducked .sound-icon {
+  background: var(--river);
+  color: #fff;
+  animation-duration: 2.6s;
+}
+
+@keyframes soundPulse {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(189, 139, 63, 0.38);
+  }
+  50% {
+    transform: scale(1.08);
+    box-shadow: 0 0 0 9px rgba(189, 139, 63, 0);
+  }
+}
+
 @media (max-width: 960px) {
   .hero {
     min-height: 82svh;
@@ -1948,6 +2024,18 @@ body {
   .timeline-rail {
     gap: 1rem;
   }
+
+  .sound-toggle {
+    right: 0.75rem;
+    bottom: 0.75rem;
+    padding: 0.5rem 0.68rem;
+  }
+
+  .sound-text {
+    max-width: 7.5rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1985,5 +2073,9 @@ body {
   :is(.editorial-media, .wide-figure, .full-bleed-image, .split-media, .person-media, .closing-media):hover img,
   .timeline-image:hover img {
     transform: none;
+  }
+
+  .sound-toggle.is-on .sound-icon {
+    animation: none;
   }
 }

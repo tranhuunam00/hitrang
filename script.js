@@ -5,6 +5,9 @@
   const hotspots = document.querySelectorAll(".hotspot");
   const mapSteps = document.querySelectorAll(".map-step");
   const poll = document.querySelector("[data-poll]");
+  const ambientAudio = document.getElementById("ambientAudio");
+  const soundToggle = document.getElementById("soundToggle");
+  const storyVideos = Array.from(document.querySelectorAll("video"));
   const mediaRevealSelector = [
     "figure",
     ".hero-art",
@@ -168,13 +171,182 @@
     renderPoll(null);
   }
 
-  document.querySelectorAll("video").forEach((video) => {
+  const AMBIENT_VOLUME = 0.42;
+  const DUCKED_VOLUME = 0.12;
+  let ambientWanted = false;
+  let ambientDismissed = false;
+  let ambientDucked = false;
+  let ambientFadeFrame = null;
+
+  function isElementInView(element, minRatio = 0.16) {
+    const rect = element.getBoundingClientRect();
+    if (rect.width <= 0 || rect.height <= 0) return false;
+
+    const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
+    const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+    const visibleWidth = Math.min(rect.right, viewportWidth) - Math.max(rect.left, 0);
+    const visibleHeight = Math.min(rect.bottom, viewportHeight) - Math.max(rect.top, 0);
+
+    return visibleWidth > rect.width * minRatio && visibleHeight > rect.height * minRatio;
+  }
+
+  function isVideoAudible(video) {
+    return !video.muted && video.volume > 0;
+  }
+
+  function shouldDuckAmbient() {
+    return storyVideos.some((video) => (
+      isVideoAudible(video) &&
+      !video.paused &&
+      !video.ended &&
+      isElementInView(video)
+    ));
+  }
+
+  function fadeAmbientTo(targetVolume) {
+    if (!ambientAudio) return;
+
+    if (ambientFadeFrame) {
+      window.cancelAnimationFrame(ambientFadeFrame);
+    }
+
+    const startVolume = ambientAudio.volume;
+    const startTime = performance.now();
+    const duration = 520;
+
+    function step(now) {
+      const progress = Math.min(1, (now - startTime) / duration);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      ambientAudio.volume = startVolume + (targetVolume - startVolume) * eased;
+
+      if (progress < 1) {
+        ambientFadeFrame = window.requestAnimationFrame(step);
+      }
+    }
+
+    ambientFadeFrame = window.requestAnimationFrame(step);
+  }
+
+  function updateSoundToggle() {
+    if (!soundToggle || !ambientAudio) return;
+
+    const isPlaying = ambientWanted && !ambientAudio.paused;
+    const label = isPlaying ? "Tắt nhạc nền" : "Bật nhạc nền";
+    const text = soundToggle.querySelector(".sound-text");
+
+    soundToggle.classList.toggle("is-on", isPlaying);
+    soundToggle.classList.toggle("is-ducked", isPlaying && ambientDucked);
+    soundToggle.setAttribute("aria-pressed", isPlaying ? "true" : "false");
+    soundToggle.setAttribute("aria-label", label);
+
+    if (text) {
+      text.textContent = isPlaying ? (ambientDucked ? "Nhạc nền nhỏ" : "Tắt nhạc nền") : "Bật nhạc nền";
+    }
+  }
+
+  function updateAmbientDucking() {
+    if (!ambientAudio) return;
+
+    const nextDucked = shouldDuckAmbient();
+    if (nextDucked !== ambientDucked) {
+      ambientDucked = nextDucked;
+      if (ambientWanted && !ambientAudio.paused) {
+        fadeAmbientTo(ambientDucked ? DUCKED_VOLUME : AMBIENT_VOLUME);
+      }
+    }
+
+    updateSoundToggle();
+  }
+
+  function removeAmbientUnlockers() {
+    window.removeEventListener("pointerdown", unlockAmbientFromGesture);
+    window.removeEventListener("keydown", unlockAmbientFromGesture);
+  }
+
+  async function startAmbient() {
+    if (!ambientAudio || ambientDismissed) return;
+
+    ambientWanted = true;
+    ambientAudio.volume = ambientDucked ? DUCKED_VOLUME : AMBIENT_VOLUME;
+
+    try {
+      await ambientAudio.play();
+      removeAmbientUnlockers();
+    } catch {
+      ambientWanted = false;
+    } finally {
+      updateAmbientDucking();
+    }
+  }
+
+  function stopAmbient() {
+    if (!ambientAudio) return;
+
+    ambientDismissed = true;
+    ambientWanted = false;
+    ambientAudio.pause();
+    updateAmbientDucking();
+  }
+
+  function unlockAmbientFromGesture(event) {
+    const clickedToggle = event.target instanceof Element && event.target.closest("#soundToggle");
+    if (!clickedToggle && !ambientWanted && !ambientDismissed) {
+      startAmbient();
+    }
+  }
+
+  if (ambientAudio && soundToggle) {
+    ambientAudio.volume = AMBIENT_VOLUME;
+
+    soundToggle.addEventListener("click", () => {
+      if (ambientWanted && !ambientAudio.paused) {
+        stopAmbient();
+      } else {
+        ambientDismissed = false;
+        startAmbient();
+      }
+    });
+
+    ambientAudio.addEventListener("play", updateSoundToggle);
+    ambientAudio.addEventListener("pause", updateSoundToggle);
+    ambientAudio.addEventListener("ended", updateSoundToggle);
+
+    window.addEventListener("pointerdown", unlockAmbientFromGesture, { passive: true });
+    window.addEventListener("keydown", unlockAmbientFromGesture);
+
+    startAmbient();
+  }
+
+  if ("IntersectionObserver" in window) {
+    const audibleVideoObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          const video = entry.target;
+          if (entry.intersectionRatio < 0.12 && isVideoAudible(video) && !video.paused) {
+            video.pause();
+          }
+        });
+        updateAmbientDucking();
+      },
+      { threshold: [0, 0.12, 0.5, 1] }
+    );
+
+    storyVideos.forEach((video) => audibleVideoObserver.observe(video));
+  }
+
+  storyVideos.forEach((video) => {
+    ["play", "pause", "ended", "volumechange"].forEach((eventName) => {
+      video.addEventListener(eventName, updateAmbientDucking);
+    });
+
+    if (!video.hasAttribute("autoplay")) return;
+
     video.play().catch(() => {
       video.removeAttribute("autoplay");
     });
   });
 
-  document.querySelectorAll("img, video").forEach((media) => {
+  document.querySelectorAll("img, video, audio").forEach((media) => {
     media.addEventListener(
       "error",
       () => {
@@ -186,6 +358,13 @@
   });
 
   updateProgress();
-  window.addEventListener("scroll", updateProgress, { passive: true });
-  window.addEventListener("resize", updateProgress);
+  updateAmbientDucking();
+  window.addEventListener("scroll", () => {
+    updateProgress();
+    updateAmbientDucking();
+  }, { passive: true });
+  window.addEventListener("resize", () => {
+    updateProgress();
+    updateAmbientDucking();
+  });
 })();
