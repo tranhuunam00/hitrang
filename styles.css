@@ -2101,6 +2101,24 @@ body {
   hyphens: auto;
 }
 
+/* The editorial font has tall Vietnamese diacritics; keep every display line
+   inside its own line box so headings are never cropped on narrow or wide screens. */
+:is(
+  .hero h1,
+  .chapter-title h2,
+  .section-heading h2,
+  .map-copy h2,
+  .media-band-copy h2,
+  .text-block h2,
+  .deity-copy h2,
+  .split-copy h2,
+  .closing-copy h2,
+  .poll-copy h2
+) {
+  line-height: 1.16;
+  padding-block: 0.08em;
+}
+
 :where(
   .article p,
   .article blockquote,
