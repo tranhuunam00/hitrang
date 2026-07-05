@@ -5,6 +5,27 @@
   const hotspots = document.querySelectorAll(".hotspot");
   const mapSteps = document.querySelectorAll(".map-step");
   const poll = document.querySelector("[data-poll]");
+  const mediaRevealSelector = [
+    "figure",
+    ".hero-art",
+    ".timeline-image",
+    ".wide-figure",
+    ".full-bleed-image",
+    ".split-media",
+    ".person-media",
+    ".interview-media",
+    ".closing-media",
+  ].join(",");
+
+  revealItems.forEach((item, index) => {
+    if (!item.dataset.reveal) {
+      if (item.matches(mediaRevealSelector)) {
+        item.dataset.reveal = "media";
+      } else if (item.matches(".person-card, .media-band-copy, .closing-copy")) {
+        item.dataset.reveal = index % 2 === 0 ? "text-left" : "text-right";
+      }
+    }
+  });
 
   function updateProgress() {
     const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
@@ -17,14 +38,22 @@
     (entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
+          entry.target.classList.remove("exit-up", "exit-down");
           entry.target.classList.add("in-view");
-          revealObserver.unobserve(entry.target);
+          entry.target.dataset.hasEntered = "true";
+        } else {
+          entry.target.classList.remove("in-view");
+          if (entry.target.dataset.hasEntered === "true") {
+            const exitedAbove = entry.boundingClientRect.bottom <= (entry.rootBounds?.top || 0);
+            entry.target.classList.toggle("exit-up", exitedAbove);
+            entry.target.classList.toggle("exit-down", !exitedAbove);
+          }
         }
       });
     },
     {
-      threshold: 0.14,
-      rootMargin: "0px 0px -8% 0px",
+      threshold: 0.08,
+      rootMargin: "-4% 0px -8% 0px",
     }
   );
 
@@ -33,13 +62,18 @@
     const alreadyVisible = rect.top < window.innerHeight * 0.96 && rect.bottom > 0;
     if (alreadyVisible) {
       item.classList.add("in-view");
-    } else {
-      revealObserver.observe(item);
+      item.dataset.hasEntered = "true";
     }
+    revealObserver.observe(item);
   });
 
   function activateHotspot(key) {
-    hotspots.forEach((spot) => spot.classList.toggle("is-active", spot.classList.contains(key)));
+    hotspots.forEach((spot) => {
+      const isActive = spot.classList.contains(key);
+      spot.classList.toggle("is-active", isActive);
+      spot.setAttribute("aria-pressed", isActive ? "true" : "false");
+    });
+    mapSteps.forEach((step) => step.classList.toggle("is-active", step.dataset.target === key));
   }
 
   const mapObserver = new IntersectionObserver(
@@ -51,16 +85,31 @@
       });
     },
     {
-      threshold: 0.65,
+      threshold: 0.48,
     }
   );
 
-  mapSteps.forEach((step) => mapObserver.observe(step));
+  mapSteps.forEach((step) => {
+    step.setAttribute("role", "button");
+    step.setAttribute("tabindex", "0");
+    mapObserver.observe(step);
+    ["mouseenter", "focus", "click"].forEach((eventName) => {
+      step.addEventListener(eventName, () => activateHotspot(step.dataset.target));
+    });
+    step.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        activateHotspot(step.dataset.target);
+      }
+    });
+  });
+
   hotspots.forEach((spot) => {
-    spot.addEventListener("mouseenter", () => {
+    spot.setAttribute("aria-pressed", spot.classList.contains("is-active") ? "true" : "false");
+    ["mouseenter", "focus", "click"].forEach((eventName) => spot.addEventListener(eventName, () => {
       const direction = Array.from(spot.classList).find((name) => ["east", "west", "south", "north"].includes(name));
       if (direction) activateHotspot(direction);
-    });
+    }));
   });
 
   const flashcards = document.querySelectorAll(".flashcard");
