@@ -2171,6 +2171,22 @@ body {
 }
 
 @media (max-width: 640px) {
+  .media-band {
+    padding-inline: 1.25rem;
+  }
+
+  .media-band-copy {
+    min-width: 0;
+    width: 100%;
+    padding-inline: 0.25rem;
+  }
+
+  .media-band-copy p {
+    max-width: 100%;
+    font-size: 0.94rem;
+    overflow-wrap: anywhere;
+  }
+
   .chapter-title p {
     margin-top: 1.5rem;
   }
