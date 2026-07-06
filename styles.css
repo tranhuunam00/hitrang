@@ -1768,6 +1768,86 @@ body {
   filter: saturate(1.08) contrast(1.04);
 }
 
+/* A restrained 3D layer for pointer devices. Motion is attached in script.js
+   only when hover is available and reduced motion is not requested. */
+.depth-surface {
+  --depth-rotate-x: 0deg;
+  --depth-rotate-y: 0deg;
+  --depth-light-x: 50%;
+  --depth-light-y: 50%;
+  transform-style: preserve-3d;
+}
+
+.depth-surface::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  background:
+    radial-gradient(
+      circle at var(--depth-light-x) var(--depth-light-y),
+      rgba(255, 248, 221, 0.3),
+      transparent 42%
+    );
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.depth-surface.is-tilting::before {
+  opacity: 1;
+}
+
+.map-stage.depth-surface {
+  transform:
+    perspective(1200px)
+    rotateX(var(--depth-rotate-x))
+    rotateY(var(--depth-rotate-y))
+    translateZ(0);
+  transition:
+    transform 0.32s cubic-bezier(0.2, 0.72, 0.2, 1),
+    box-shadow 0.32s ease;
+}
+
+.map-stage.depth-surface.is-tilting {
+  box-shadow:
+    0 34px 90px rgba(11, 13, 13, 0.34),
+    0 10px 26px rgba(189, 139, 63, 0.16);
+  transition-duration: 0.12s;
+}
+
+.map-stage.depth-surface .hotspot {
+  z-index: 3;
+  transform: translateZ(42px);
+}
+
+.map-stage.depth-surface .hotspot.is-active {
+  transform: translateZ(52px) scale(1.24);
+}
+
+.depth-surface:not(.map-stage) > img {
+  transform:
+    perspective(1000px)
+    rotateX(var(--depth-rotate-x))
+    rotateY(var(--depth-rotate-y))
+    scale(1.022);
+  filter: saturate(1.03) contrast(1.015);
+  transition:
+    transform 0.28s cubic-bezier(0.2, 0.72, 0.2, 1),
+    filter 0.28s ease;
+}
+
+.depth-surface.is-tilting:not(.map-stage) > img {
+  transform:
+    perspective(1000px)
+    rotateX(var(--depth-rotate-x))
+    rotateY(var(--depth-rotate-y))
+    scale(1.035);
+  filter: saturate(1.08) contrast(1.03);
+  transition-duration: 0.12s;
+}
+
 .flashcard::before {
   content: "";
   position: absolute;

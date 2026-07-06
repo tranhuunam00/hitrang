@@ -146,6 +146,65 @@
     }));
   });
 
+  const depthMotionQuery = window.matchMedia("(hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)");
+  const depthSurfaces = document.querySelectorAll([
+    ".map-stage",
+    ".editorial-media",
+    ".wide-figure",
+    ".full-bleed-image",
+    ".split-media",
+    ".timeline-image",
+    ".person-media",
+    ".closing-media",
+  ].join(","));
+
+  if (depthMotionQuery.matches) {
+    depthSurfaces.forEach((surface) => {
+      const maxTilt = surface.matches(".map-stage") ? 4.2 : 2.2;
+      let depthFrame = null;
+      let pointerX = 0;
+      let pointerY = 0;
+
+      surface.classList.add("depth-surface");
+
+      function renderDepth() {
+        const rect = surface.getBoundingClientRect();
+        const normalizedX = Math.max(-1, Math.min(1, ((pointerX - rect.left) / rect.width) * 2 - 1));
+        const normalizedY = Math.max(-1, Math.min(1, ((pointerY - rect.top) / rect.height) * 2 - 1));
+
+        surface.style.setProperty("--depth-rotate-x", `${(-normalizedY * maxTilt).toFixed(2)}deg`);
+        surface.style.setProperty("--depth-rotate-y", `${(normalizedX * maxTilt).toFixed(2)}deg`);
+        surface.style.setProperty("--depth-light-x", `${((normalizedX + 1) * 50).toFixed(1)}%`);
+        surface.style.setProperty("--depth-light-y", `${((normalizedY + 1) * 50).toFixed(1)}%`);
+        depthFrame = null;
+      }
+
+      surface.addEventListener("pointerenter", () => {
+        surface.classList.add("is-tilting");
+      });
+
+      surface.addEventListener("pointermove", (event) => {
+        pointerX = event.clientX;
+        pointerY = event.clientY;
+        if (!depthFrame) {
+          depthFrame = window.requestAnimationFrame(renderDepth);
+        }
+      }, { passive: true });
+
+      surface.addEventListener("pointerleave", () => {
+        if (depthFrame) {
+          window.cancelAnimationFrame(depthFrame);
+          depthFrame = null;
+        }
+        surface.classList.remove("is-tilting");
+        surface.style.setProperty("--depth-rotate-x", "0deg");
+        surface.style.setProperty("--depth-rotate-y", "0deg");
+        surface.style.setProperty("--depth-light-x", "50%");
+        surface.style.setProperty("--depth-light-y", "50%");
+      });
+    });
+  }
+
   const flashcards = document.querySelectorAll(".flashcard");
 
   function closeFlashcard(card) {
